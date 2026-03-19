@@ -3,14 +3,14 @@
 :root {
   font-family: 'Outfit', sans-serif;
   color: #1a1a1a;
-  background-color: #fafafa;
+  background-color: #f8fafc;
   /* Variables */
-  --primary: #0ca690;
-  --primary-hover: #098b78;
-  --text-dark: #1f2937;
-  --text-light: #6b7280;
+  --primary: #6366f1; /* Vibrant Indigo */
+  --primary-hover: #4f46e5;
+  --text-dark: #0f172a;
+  --text-light: #64748b;
   --bg-card: #ffffff;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
 }
 
 body {

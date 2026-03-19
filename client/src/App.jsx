@@ -7,27 +7,27 @@ import './index.css';
 const PRODUCTS = [
   {
     id: 1,
-    title: 'Wireless Headphones',
-    desc: 'Premium noise-cancelling wireless headphones with 30-hour battery life and soft ear cushions.',
-    price: 14999,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
+    title: '4K Camera Drone',
+    desc: 'Capture stunning aerial photography with 3-axis gimbal stabilization and 40-min flight time.',
+    price: 34999,
+    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=500&q=80',
     isNew: true
   },
   {
     id: 2,
-    title: 'Smart Watch',
-    desc: 'Fitness tracking smartwatch with heart rate monitor, GPS, and 7-day battery.',
-    price: 24999,
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80',
-    isNew: true
+    title: 'Next-Gen Game Console',
+    desc: 'Experience lightning-fast loading, ultra-high speed SSD, and breathtaking 3D audio.',
+    price: 49999,
+    image: 'https://images.unsplash.com/photo-1605901309584-818e25960b8f?w=500&q=80',
+    isNew: false
   },
   {
     id: 3,
-    title: 'Minimalist Keyboard',
-    desc: 'Ultra-thin mechanical keyboard with tactical feedback and wireless connectivity.',
-    price: 8999,
-    image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&q=80',
-    isNew: false
+    title: 'VR Headset System',
+    desc: 'Immersive virtual reality headset with 360-degree tracking and dual wireless controllers.',
+    price: 29999,
+    image: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=500&q=80',
+    isNew: true
   }
 ];
 
