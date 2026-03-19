@@ -13,21 +13,46 @@ function App() {
 
     return (
         <div className="container">
-            <h1>ShopSmart</h1>
-            <div className="card">
-                <h2>Backend Status</h2>
+            <h1 className="title">ShopSmart</h1>
+            <p className="subtitle">Modern Application Architecture</p>
+
+            <div className="glass-card">
+                <h2 className="status-header">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    System Connectivity
+                </h2>
+                
                 {data ? (
-                    <div>
-                        <p>Status: <span className="status-ok">{data.status}</span></p>
-                        <p>Message: {data.message}</p>
-                        <p>Timestamp: {data.timestamp}</p>
+                    <div className="status-container">
+                        <div className="status-row">
+                            <span className="status-label">API Status</span>
+                            <span className="status-value status-ok">{data.status.toUpperCase()}</span>
+                        </div>
+                        <div className="status-row">
+                            <span className="status-label">Message</span>
+                            <span className="status-value">{data.message}</span>
+                        </div>
+                        <div className="status-row">
+                            <span className="status-label">Last Ping</span>
+                            <span className="status-value">
+                                {new Date(data.timestamp).toLocaleTimeString()}
+                            </span>
+                        </div>
                     </div>
                 ) : (
-                    <p>Loading backend status...</p>
+                    <div className="loading-container">
+                        <span className="loader"></span>
+                        <p style={{ color: '#94a3b8', fontSize: '1.05rem' }}>
+                            Awaiting Backend Integration...
+                        </p>
+                    </div>
                 )}
             </div>
+            
             <p className="hint">
-                Edit <code>src/App.jsx</code> and save to test HMR
+                React Frontend deployed securely. Awaiting upstream backend link.
             </p>
         </div>
     )
