@@ -1,0 +1,50 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install backend dependencies
+      working-directory: ./server
+      run: npm ci
+
+    - name: Lint Backend
+      working-directory: ./server
+      run: npm run lint
+
+    - name: Test Backend
+      working-directory: ./server
+      run: npm run test
+
+    - name: Install frontend dependencies
+      working-directory: ./client
+      run: npm ci
+
+    - name: Lint Frontend
+      working-directory: ./client
+      run: npm run lint
+
+    - name: Test Frontend
+      working-directory: ./client
+      run: npm run test -- --run
+
+    - name: Cypress E2E Tests
+      uses: cypress-io/github-action@v6
+      with:
+        working-directory: ./client
+        start: npm run dev
+        wait-on: 'http://localhost:5173'
