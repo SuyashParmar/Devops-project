@@ -1,4 +1,4 @@
-export default function Cart({ items, onUpdateQuantity, onRemove }) {
+export default function Cart({ items, onUpdateQuantity, onRemove, onCheckout }) {
   const formatPrice = (price) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumSignificantDigits: 5 }).format(price);
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -42,7 +42,7 @@ export default function Cart({ items, onUpdateQuantity, onRemove }) {
               <span>Subtotal</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
-            <button className="checkout-btn">Checkout</button>
+            <button className="checkout-btn" onClick={onCheckout}>Checkout</button>
           </div>
         </>
       )}

@@ -4,45 +4,51 @@ import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import './index.css';
 
-const PRODUCTS = [
-  {
-    id: 1,
-    title: '4K Camera Drone',
-    desc: 'Capture stunning aerial photography with 3-axis gimbal stabilization and 40-min flight time.',
-    price: 34999,
-    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=500&q=80',
-    isNew: true
-  },
-  {
-    id: 2,
-    title: 'Next-Gen Game Console',
-    desc: 'Experience lightning-fast loading, ultra-high speed SSD, and breathtaking 3D audio.',
-    price: 49999,
-    image: 'https://images.unsplash.com/photo-1605901309584-818e25960b8f?w=500&q=80',
-    isNew: false
-  },
-  {
-    id: 3,
-    title: 'VR Headset System',
-    desc: 'Immersive virtual reality headset with 360-degree tracking and dual wireless controllers.',
-    price: 29999,
-    image: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=500&q=80',
-    isNew: true
-  }
-];
-
 function App() {
+  const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [dbStatus, setDbStatus] = useState('checking');
 
   useEffect(() => {
     // Keep API integration to satisfy rubric
     const apiUrl = import.meta.env.VITE_API_URL || '';
+    
+    // Check Health
     fetch(`${apiUrl}/api/health`)
       .then(res => res.json())
       .then(data => setDbStatus(data.db_status || 'connected'))
       .catch(() => setDbStatus('disconnected'));
+
+    // Fetch Products dynamically from Backend
+    fetch(`${apiUrl}/api/products`)
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => console.error("Could not load products from backend", err));
   }, []);
+
+  const handleCheckout = async () => {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    if (cartItems.length === 0) return;
+
+    try {
+        const response = await fetch(`${apiUrl}/api/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: cartItems, total })
+        });
+        
+        if (response.ok) {
+            alert('Order placed successfully! 🚀 (Saved on backend)');
+            setCartItems([]);
+        } else {
+            alert('Checkout failed! Is backend running?');
+        }
+    } catch(err) {
+        alert('Checkout failed! Is backend running?');
+    }
+  };
 
   const addToCart = (product) => {
     setCartItems(prev => {
@@ -79,7 +85,7 @@ function App() {
 
       <div className="main-content">
         <div className="products-grid">
-          {PRODUCTS.map(product => (
+          {products.length === 0 ? <div className="loading-container"><span className="loader"></span><p>Loading products from API...</p></div> : products.map(product => (
             <ProductCard 
               key={product.id} 
               product={product} 
@@ -92,6 +98,7 @@ function App() {
           items={cartItems} 
           onUpdateQuantity={updateQuantity} 
           onRemove={removeFromCart} 
+          onCheckout={handleCheckout}
         />
       </div>
 
