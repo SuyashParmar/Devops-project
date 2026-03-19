@@ -31,6 +31,12 @@ function App() {
                             <span className="status-value status-ok">{data.status.toUpperCase()}</span>
                         </div>
                         <div className="status-row">
+                            <span className="status-label">Database</span>
+                            <span className={`status-value ${data.db_status === 'connected' ? 'status-ok' : ''}`} style={data.db_status === 'disconnected' ? {color: '#ef4444'} : {}}>
+                                {data.db_status ? data.db_status.toUpperCase() : 'UNKNOWN'}
+                            </span>
+                        </div>
+                        <div className="status-row">
                             <span className="status-label">Message</span>
                             <span className="status-value">{data.message}</span>
                         </div>

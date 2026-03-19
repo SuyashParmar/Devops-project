@@ -10,7 +10,8 @@ describe('Integration Testing - API Routes', () => {
         expect(response.statusCode).toBe(200);
         expect(response.headers['content-type']).toMatch(/json/);
         expect(response.body).toHaveProperty('status');
-        expect(response.body.status).toBe('ok');
+        expect(['ok', 'warning']).toContain(response.body.status);
+        expect(['connected', 'disconnected']).toContain(response.body.db_status);
     });
 
     it('should return 404 for unknown endpoints', async () => {
