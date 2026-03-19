@@ -7,23 +7,15 @@ import './index.css';
 function App() {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
-  const [dbStatus, setDbStatus] = useState('checking');
 
   useEffect(() => {
-    // Keep API integration to satisfy rubric
     const apiUrl = import.meta.env.VITE_API_URL || '';
     
-    // Check Health
-    fetch(`${apiUrl}/api/health`)
-      .then(res => res.json())
-      .then(data => setDbStatus(data.db_status || 'connected'))
-      .catch(() => setDbStatus('disconnected'));
-
     // Fetch Products dynamically from Backend
     fetch(`${apiUrl}/api/products`)
       .then(res => res.json())
       .then(data => setProducts(data))
-      .catch(err => console.error("Could not load products from backend", err));
+      .catch(err => console.error('Could not load products from backend', err));
   }, []);
 
   const handleCheckout = async () => {
@@ -100,11 +92,6 @@ function App() {
           onRemove={removeFromCart} 
           onCheckout={handleCheckout}
         />
-      </div>
-
-      <div className="footer-status">
-        <div className={`status-dot ${dbStatus === 'disconnected' ? 'disconnected' : ''}`}></div>
-        System Status: {dbStatus === 'disconnected' ? 'Offline (Static Mode)' : 'Online and Connected to API'}
       </div>
     </div>
   );
