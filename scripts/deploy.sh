@@ -1,55 +1,53 @@
-#!/bin/bash
-# Idempotent Deployment Script for ShopSmart
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+APP_DIR=~/devops-course-project
+APP_NAME="shopsmart-server"
 
-echo "Starting Deployment Process..."
+echo "=== ShopSmart Deployment ==="
 
-# 1. Ensure project directory exists idempotently
-mkdir -p /home/ubuntu/devops-project
+cd "$APP_DIR"
 
-# 2. Navigate to project directory
-cd /home/ubuntu/devops-project
+echo ">> Pulling latest code..."
+git pull origin main
 
-# 3. Pull latest code from GitHub
-echo "Pulling latest changes..."
-git pull origin main || echo "Git pull failed or no origin set, proceeding..."
+# Load NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
-# 4. Idempotently install backend dependencies
-echo "Installing backend dependencies..."
-cd server
-npm ci || npm install
+nvm use 22
 
-# 5. Idempotent PM2 service start/restart
-echo "Managing backend service with PM2..."
-if pm2 show shopsmart-backend > /dev/null 2>&1; then
-    echo "Restarting shopsmart-backend..."
-    pm2 restart shopsmart-backend
-else
-    echo "Starting shopsmart-backend..."
-    pm2 start src/index.js --name shopsmart-backend
-fi
+echo ">> Node version: $(node -v)"
 
-# 6. Idempotently install and build frontend
-echo "Building frontend..."
-cd ../client
-npm ci || npm install
+# -------------------
+# SERVER SETUP
+# -------------------
+echo ">> Installing server dependencies..."
+cd "$APP_DIR/server"
+npm i
 
-# Dynamically fetch EC2 Public IP so frontend React app knows where the backend is
-export PUBLIC_IP=$(curl -s http://checkip.amazonaws.com || echo "localhost")
-export VITE_API_URL="http://$PUBLIC_IP:5001"
-echo "Compiling React App with VITE_API_URL=$VITE_API_URL"
+# -------------------
+# CLIENT BUILD
+# -------------------
+echo ">> Building client..."
+cd "$APP_DIR/client"
+npm ci
 npm run build
 
-# 7. Host frontend static files via PM2
-echo "Managing frontend service with PM2..."
-if pm2 show shopsmart-frontend > /dev/null 2>&1; then
-    echo "Restarting shopsmart-frontend..."
-    pm2 restart shopsmart-frontend
-else
-    echo "Starting shopsmart-frontend statically..."
-    pm2 serve dist 3000 --name shopsmart-frontend --spa
-fi
+# -------------------
+# RESTART SERVER
+# -------------------
+echo ">> Restarting server with PM2..."
+cd "$APP_DIR/server"
 
-echo "Deployment completed successfully! Frontend on port 3000, Backend on port 5001."
+pm2 delete "$APP_NAME" 2>/dev/null || true
+
+pm2 start src/index.js \
+  --name "$APP_NAME" \
+  --time
+
+pm2 save
+
+echo ""
+echo "=== Deployment complete! ==="
+pm2 status
