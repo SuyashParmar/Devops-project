@@ -45,7 +45,7 @@ app.get('/api/products', (req, res) => {
       title: 'Next-Gen Game Console',
       desc: 'Experience lightning-fast loading, ultra-high speed SSD, and breathtaking 3D audio.',
       price: 49999,
-      image: 'https://images.unsplash.com/photo-1605901309584-818e25960b8f?w=500&q=80',
+      image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=500&q=80',
       isNew: false
     },
     {
