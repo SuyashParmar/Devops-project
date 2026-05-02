@@ -126,3 +126,8 @@ cypress/screenshots
 
 # Build folder
 client/dist/
+
+# Test reports
+reports/
+test-results.xml
+*.xml
