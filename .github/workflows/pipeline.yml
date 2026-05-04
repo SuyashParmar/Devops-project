@@ -93,6 +93,7 @@ jobs:
           terraform validate
           terraform plan
           terraform state show aws_ecr_repository.backend >/dev/null 2>&1 || terraform import aws_ecr_repository.backend shopsmart-backend
+          terraform state show aws_ecs_service.main >/dev/null 2>&1 || terraform import aws_ecs_service.main shopsmart-cluster/shopsmart-service
           terraform apply -auto-approve
 
   # ============================================
