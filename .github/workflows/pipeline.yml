@@ -92,6 +92,7 @@ jobs:
           terraform init
           terraform validate
           terraform plan
+          terraform state show aws_ecr_repository.backend >/dev/null 2>&1 || terraform import aws_ecr_repository.backend shopsmart-backend
           terraform apply -auto-approve
 
   # ============================================
