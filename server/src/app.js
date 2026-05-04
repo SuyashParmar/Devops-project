@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const db = require('./db');
 
 const app = express();
@@ -7,6 +8,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve frontend static files (React build)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Health Check Route with MySQL test
 app.get('/api/health', async (req, res) => {
@@ -76,9 +80,9 @@ app.post('/api/checkout', (req, res) => {
   res.json({ success: true, message: 'Order accurately saved to backend server log.' });
 });
 
-// Root Route (optional, just to show something)
-app.get('/', (req, res) => {
-  res.send('ShopSmart Backend Service');
+// SPA catch-all — serve index.html for any non-API route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 module.exports = app;

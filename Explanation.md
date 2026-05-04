@@ -1,18 +1,16 @@
 # DevOps Implementation Explanation
 
 ## 1. Architecture
-The **ShopSmart** application follows a modular monolith architecture separated into two primary tiers:
-- **Frontend (Client)**: A React-based Single Page Application (SPA) built with Vite. It handles user interactions, static routing, and API calls.
-- **Backend (Server)**: A Node.js and Express server providing the RESTful API endpoints. It serves as the primary data and logic layer.
-- **Infrastructure**: Designed for deployment onto an AWS EC2 instance, utilizing PM2 as an idempotent process manager to keep the backend service alive and robust.
+The **ShopSmart** application follows a modular monolith architecture:
+- **Frontend (Client)**: A React-based SPA built with Vite, deployed to AWS S3.
+- **Backend (Server)**: A Node.js and Express server containerized and deployed to **AWS ECS Fargate**.
+- **Infrastructure**: Provisioned via **Terraform**, ensuring a scalable and serverless environment.
 
 ## 2. Workflow (CI/CD Pipeline)
-A robust Continuous Integration and Continuous Deployment (CI/CD) pipeline was configured via GitHub Actions.
-- **Continuous Integration (`ci.yml`)**: Triggered on `push` and `pull_request` to the `main` branch. 
-  - **Steps**: It checks out the repository, sets up Node.js, installs dependencies for both frontend and backend, runs static analysis (ESLint), executes Unit/Integration Tests (Jest & Vitest), and runs End-to-End Tests (Cypress) against a deployed testing server.
-- **Continuous Deployment (`cd.yml`)**: Triggered on `push` to `main`. 
-  - **Steps**: It securely accesses the AWS EC2 instance via SSH and runs an idempotent shell script (`scripts/deploy.sh`).
-- **Dependabot**: Configured to check weekly for outdated dependencies in both GitHub Actions and npm ecosystems to guarantee security vulnerabilities are patched.
+A unified CI/CD pipeline was configured via GitHub Actions (`pipeline.yml`).
+- **Phase 1: Testing**: Runs backend and frontend tests, generating artifacts.
+- **Phase 2: Infrastructure**: Automatically provisions AWS resources using Terraform (VPC, ECR, ECS).
+- **Phase 3: Deployment**: Builds a multi-stage Docker image, pushes it to ECR, and updates the ECS service with the new image tag.
 
 ## 3. Design Decisions
 - **Idempotency in Deployment**: `scripts/deploy.sh` relies on `mkdir -p` and `pm2 start`/`pm2 restart` logic. This ensures that executing the deployment script multiple times does not corrupt the state of the EC2 instance or throw "already exists" errors.

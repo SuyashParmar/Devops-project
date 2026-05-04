@@ -1,0 +1,137 @@
+name: ShopSmart Full CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  # ============================================
+  # Phase 1: Testing & Linting
+  # ============================================
+  test-and-lint:
+    name: Phase 1 — Testing & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      # ── Backend ──
+      - name: Install & Test Backend
+        working-directory: ./server
+        run: |
+          npm ci
+          npm run lint
+          npx jest --ci --reporters=default --reporters=jest-junit
+        env:
+          JEST_JUNIT_OUTPUT_DIR: reports
+          JEST_JUNIT_OUTPUT_NAME: backend-test-results.xml
+
+      # ── Frontend ──
+      - name: Install & Test Frontend
+        working-directory: ./client
+        run: |
+          npm ci
+          npm run lint
+          npm run test -- --run --reporter=junit --outputFile=reports/frontend-test-results.xml
+
+      # ── E2E Tests (Cypress) ──
+      - name: Run E2E Tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./client
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          browser: chrome
+
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: |
+            server/reports/*.xml
+            client/reports/*.xml
+            client/cypress/screenshots
+            client/cypress/videos
+
+  # ============================================
+  # Phase 2: Infrastructure (Terraform)
+  # ============================================
+  terraform:
+    name: Phase 2 — Terraform Provisioning
+    needs: test-and-lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init & Apply
+        working-directory: ./terraform
+        run: |
+          terraform init
+          terraform validate
+          terraform plan
+          terraform apply -auto-approve
+
+  # ============================================
+  # Phase 3: Build & Deploy (Docker/ECR/ECS)
+  # ============================================
+  deploy:
+    name: Phase 3 — Container & ECS Deployment
+    needs: terraform
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: shopsmart-backend
+          IMAGE_TAG: latest
+        run: |
+          # Build for amd64 as Fargate requires it
+          docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Force ECS Deployment
+        run: |
+          aws ecs update-service --cluster shopsmart-cluster --service shopsmart-service --force-new-deployment
