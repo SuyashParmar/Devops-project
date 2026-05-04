@@ -146,7 +146,7 @@ resource "aws_security_group" "ecs_tasks" {
 # Load Balancer
 # ============================================
 resource "aws_lb" "main" {
-  name               = "${var.project_name}-alb"
+  name               = "${var.project_name}-alb-${random_id.bucket_suffix.hex}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -158,7 +158,7 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "${var.project_name}-tg"
+  name        = "${var.project_name}-tg-${random_id.bucket_suffix.hex}"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -212,7 +212,7 @@ data "aws_iam_role" "lab_role" {
 # CloudWatch Log Group
 # ============================================
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.project_name}-app"
+  name              = "/ecs/${var.project_name}-app-${random_id.bucket_suffix.hex}"
   retention_in_days = 7
 }
 
@@ -242,7 +242,7 @@ resource "aws_ecs_task_definition" "app" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = "/ecs/${var.project_name}-app"
+          "awslogs-group"         = "/ecs/${var.project_name}-app-${random_id.bucket_suffix.hex}"
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
